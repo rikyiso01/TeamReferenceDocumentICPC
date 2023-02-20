@@ -1,0 +1,16 @@
+{
+    "main": "reference.md",
+    "config": {
+        "html": "reference.html",
+        "pdf": "reference.pdf",
+        "css": "style.css",
+        "npm": "pnpm"
+    },
+    "scripts": {
+        "compile": "pandoc $npm_package_main -o $npm_package_config_html -c $npm_package_config_css -s --section-divs --katex && pagedjs-cli $npm_package_config_html -o $npm_package_config_pdf",
+        "watch": "$npm_package_config_npm compile; while inotifywait -e modify $npm_package_main $npm_package_config_css; do $npm_package_config_npm compile; done"
+    },
+    "dependencies": {
+        "pagedjs-cli": "^0.3.3"
+    }
+}

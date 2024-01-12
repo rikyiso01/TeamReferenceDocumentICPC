@@ -76,6 +76,38 @@ def segmenttree(data: list[int], default: int, func: Callable[[int, int], int]):
     return query, set
 ```
 
+### Trie
+
+Tree used to check if a string has some of the inserted prefixes
+
+-   constructor: $\Theta(1)$
+-   insert: $\Theta(n)$
+-   search: $\Theta(n)$
+
+```python
+Tree = dict["str | None", "Tree"]
+
+def trie() -> Tree:
+    return {}
+
+def insert(trie: Tree, word: str) -> None:
+    curr: Tree = trie
+    for c in word:
+        curr = curr.setdefault(c, {})
+    curr[None] = {}
+
+def search(trie: Tree, word: str) -> Iterator[int]:
+    curr = trie
+    if None in trie:
+        yield 0
+    for i, c in enumerate(word):
+        if c not in curr:
+            break
+        curr = curr[c]
+        if None in curr:
+            yield i + 1
+```
+
 ## Graph
 
 ### Breadth-First Search

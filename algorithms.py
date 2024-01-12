@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections.abc import Iterator
 from heapq import heappop, heappush
 from typing import Callable
 from sys import maxsize
@@ -10,7 +11,7 @@ from itertools import compress, count
 # Dijkstra
 def dijkstra(graph: list[list[tuple[int, int]]]) -> list[int]:
     n = len(graph)
-    queue = [(0, 0)]
+    queue: list[tuple[int, int]] = [(0, 0)]
     dp: list[int] = [maxsize] * n
     dp[0] = 0
 
@@ -375,3 +376,31 @@ def heights(tree: list[list[int]]) -> list[int]:
             dfs.append(edge)
             heights[edge] = heights[current] + 1
     return heights
+
+
+# Trie
+
+Tree = dict[str | None, "Tree"]
+
+
+def trie() -> Tree:
+    return {}
+
+
+def insert(trie: Tree, word: str) -> None:
+    curr: Tree = trie
+    for c in word:
+        curr = curr.setdefault(c, {})
+    curr[None] = {}
+
+
+def search(trie: Tree, word: str) -> Iterator[int]:
+    curr = trie
+    if None in trie:
+        yield 0
+    for i, c in enumerate(word):
+        if c not in curr:
+            break
+        curr = curr[c]
+        if None in curr:
+            yield i + 1

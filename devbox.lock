@@ -1,0 +1,45 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "nodePackages.pnpm@latest": {
+      "last_modified": "2023-12-13T22:54:10Z",
+      "resolved": "github:NixOS/nixpkgs/fd04bea4cbf76f86f244b9e2549fca066db8ddff#nodePackages.pnpm",
+      "source": "devbox-search",
+      "version": "8.10.5",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/mp0ppa9xhaaqs398r5hpvhnbwpc9mpfw-pnpm-8.10.5"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/vjvri6p42iind1dj500jhzh1lai3972r-pnpm-8.10.5"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/kq84mdjh9ycsvnkj1dmgiz8ks6fyivqk-pnpm-8.10.5"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/y3mxy318cr8cl26saysfwqbxbcwb31lb-pnpm-8.10.5"
+        }
+      }
+    },
+    "pandoc@latest": {
+      "last_modified": "2024-01-07T11:22:52Z",
+      "resolved": "github:NixOS/nixpkgs/24fe8bb4f552ad3926274d29e083b79d84707da6#pandoc",
+      "source": "devbox-search",
+      "version": "3.1.9",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/pz1afm2gr12jvili3ig7x5ivbraldyf8-pandoc-cli-3.1.9"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/5l67hdialkkn3f7jcmvw6jh9k30f848m-pandoc-cli-3.1.9"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/rmx34z5cqjsksnwxh42x8zdn18awman2-pandoc-cli-3.1.9"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/saz0x50zaygd5178v52pdl7wm3hxfjrr-pandoc-cli-3.1.9"
+        }
+      }
+    }
+  }
+}

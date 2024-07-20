@@ -35,7 +35,8 @@ def find(p: list[int], a: int) -> int:
 
 ### Segment Tree
 
-Information about intervals
+Information about intervals  
+Index 1 is root, index 0 is unused
 
 -   constructor: $\Theta(nlog(n))$
 -   query: $\Theta(log(n))$
@@ -106,6 +107,158 @@ def search(trie: Tree, word: str) -> Iterator[int]:
         curr = curr[c]
         if None in curr:
             yield i + 1
+```
+
+### Fenwick tree
+
+Information about intervals only on Habelian group operators (invertible,commutative,associative) (replace + with the operator)
+
+-   constructor: $\Theta(n)$
+-   query: $\Theta(log(n))$
+-   change: $\Theta(log(n))$
+-   find_kth: $\Theta(log(n))$
+
+```python
+def fenwick_tree(x: list[int]) -> list[int]:
+    tree = x.copy()
+    for i in range(len(x)):
+        j = i | (i + 1)
+        if j < len(x):
+            tree[j] += tree[i]
+    return tree
+
+
+def increase(tree: list[int], index: int, x: int):
+    while index < len(tree):
+        tree[index] += x
+        index |= index + 1
+
+
+def query(tree: list[int], end: int) -> int:
+    # [0,end)
+    x = 0
+    while end:
+        x += tree[end - 1]
+        end &= end - 1
+    return x
+
+
+def find_kth(tree: list[int], k: int) -> tuple[int, int]:
+    idx = -1
+    for d in reversed(range(len(tree).bit_length())):
+        right_idx = idx + (1 << d)
+        if right_idx < len(tree) and tree[right_idx] <= k:
+            idx = right_idx
+            k -= tree[idx]
+    return idx + 1, k
+```
+
+### Sorted pop
+
+Sorted list with fast index pop  
+$\text{SIZE} \propto \sqrt[3]n$
+
+-   constructor: $\Theta(n)$
+-   pop: $\Theta(\sqrt[3]n)$
+
+```python
+def sorted_list(data: list[int]) -> list[list[int]]:
+    SIZE = 700
+    buckets = (len(data) + SIZE - 1) // SIZE  # Ceil
+    return [data[i * SIZE : min((i + 1) * SIZE, len(data))] for i in range(buckets)]
+
+
+def pop(sl: list[list[int]], index: int) -> int:
+    bucket = 0
+    while index >= len(sl[bucket]):
+        index -= len(sl[bucket])
+        bucket += 1
+    return sl[bucket].pop(index)
+```
+
+### Sorted list
+
+Full sorted list implementation  
+Requires a Fenwick tree implementation  
+$\text{SIZE} \propto \sqrt[3]n$
+
+-   constructor: $\Theta(n\sqrt[3]n)$
+-   insert: $\Theta(\sqrt[3]n)$
+-   pop: $\Theta(\sqrt[3]n)$
+-   getitem: $\Theta(log(n))$
+-   count: $\Theta(log(n))$
+-   contains: $\Theta(log(n))$
+-   lower_bound: $\Theta(log(n))$
+-   upper_bound: $\Theta(log(n))$
+
+```python
+class SortedList:
+    BLOCK_SIZE = 700
+
+    def __init__(self, iterable: Iterable[int] = ()):
+        self.macro: list[int] = []
+        self.micros: list[list[int]] = [[]]
+        self.micro_size = [0]
+        self.fenwick = fenwick_tree([0])
+        self.size = 0
+        for item in iterable:
+            self.insert(item)
+
+    def insert(self, x: int) -> None:
+        i = bisect_left(self.macro, x)
+        j = bisect_right(self.micros[i], x)
+        self.micros[i].insert(j, x)
+        self.size += 1
+        self.micro_size[i] += 1
+        increase(self.fenwick, i, 1)
+        if len(self.micros[i]) >= SortedList.BLOCK_SIZE:
+            self.micros[i : i + 1] = (
+                self.micros[i][: SortedList.BLOCK_SIZE >> 1],
+                self.micros[i][SortedList.BLOCK_SIZE >> 1 :],
+            )
+            self.micro_size[i : i + 1] = (
+                SortedList.BLOCK_SIZE >> 1,
+                SortedList.BLOCK_SIZE >> 1,
+            )
+            self.fenwick = fenwick_tree(self.micro_size)
+            self.macro.insert(i, self.micros[i + 1][0])
+
+    def pop(self, k: int = -1) -> int:
+        i, j = self._find_kth(k)
+        self.size -= 1
+        self.micro_size[i] -= 1
+        increase(self.fenwick, i, -1)
+        return self.micros[i].pop(j)
+
+    def __getitem__(self, k: int) -> int:
+        i, j = self._find_kth(k)
+        return self.micros[i][j]
+
+    def count(self, x: int) -> int:
+        return self.upper_bound(x) - self.lower_bound(x)
+
+    def __contains__(self, x: int) -> bool:
+        return self.count(x) > 0
+
+    def lower_bound(self, x: int) -> int:
+        i = bisect_left(self.macro, x)
+        return query(self.fenwick, i) + bisect_left(self.micros[i], x)
+
+    def upper_bound(self, x: int) -> int:
+        i = bisect_right(self.macro, x)
+        return query(self.fenwick, i) + bisect_right(self.micros[i], x)
+
+    def _find_kth(self, k: int) -> tuple[int, int]:
+        return find_kth(self.fenwick, k + self.size if k < 0 else k)
+
+    def __len__(self) -> int:
+        return self.size
+
+    def __iter__(self) -> Iterator[int]:
+        return (x for micro in self.micros for x in micro)
+
+    def __repr__(self) -> str:
+        return str(list(self))
 ```
 
 ## Graph
@@ -345,6 +498,73 @@ def graph_to_tree(graph: list[list[int]]) -> list[int]:
     return bfs
 ```
 
+### Skips
+
+$\Theta(Vlog(V))$
+
+```python
+def skips(parents: list[int | None], heights: list[int]) -> list[list[int | None]]:
+    jump = 2
+    skips = [parents]
+    max_height = max(heights)
+    while jump <= max_height:
+        skip = skips[-1]
+        skips.append([skip[parent] if parent is not None else None for parent in skip])
+        jump *= 2
+    return skips
+```
+
+### Common ancestor
+
+$\Theta(log(V))$
+
+```python
+def common_ancestor(
+    parents: list[int | None], heights: list[int], a: int, b: int
+) -> int:
+    delta = heights[a] - heights[b]
+    if delta < 0:
+        a, b = b, a
+        delta *= -1
+    for skip in skips:
+        if delta & 1:
+            s = skip[a]
+            assert s is not None
+            a = s
+        delta >>= 1
+    for skip in reversed(skips):
+        skip_a = skip[a]
+        skip_b = skip[b]
+        if skip_a == skip_b:
+            continue
+        assert skip_a is not None
+        assert skip_b is not None
+        a, b = skip_a, skip_b
+    if a == b:
+        return a
+    else:
+        assert parents[a] == parents[b]
+        result = parents[a]
+        return result if result is not None else 0
+```
+
+### Heights of nodes
+
+$\Theta(V+E)$
+
+```python
+def heights(tree: list[list[int]]) -> list[int]:
+    n = len(tree)
+    dfs = [0]
+    heights = [0] * n
+    while dfs:
+        current = dfs.pop()
+        for edge in tree[current]:
+            dfs.append(edge)
+            heights[edge] = heights[current] + 1
+    return heights
+```
+
 ---
 
 ## Sorting
@@ -496,69 +716,19 @@ def factor(n: int) -> list[int]:
 
 $A=\frac{1}{2}|\sum_{i=1}^{n-1}(x_iy_{i+1}-x_{i+1}y_i)|$
 
-### Skips
+### Divisors of number
 
-$\Theta(Vlog(V))$
-
-```python
-def skips(parents: list[int | None], heights: list[int]) -> list[list[int | None]]:
-    jump = 2
-    skips = [parents]
-    max_height = max(heights)
-    while jump <= max_height:
-        skip = skips[-1]
-        skips.append([skip[parent] if parent is not None else None for parent in skip])
-        jump *= 2
-    return skips
-```
-
-### Common ancestor
-
-$\Theta(log(V))$
+$\Theta(\sqrt{n})$
 
 ```python
-def common_ancestor(
-    parents: list[int | None], heights: list[int], a: int, b: int
-) -> int:
-    delta = heights[a] - heights[b]
-    if delta < 0:
-        a, b = b, a
-        delta *= -1
-    for skip in skips:
-        if delta & 1:
-            s = skip[a]
-            assert s is not None
-            a = s
-        delta >>= 1
-    for skip in reversed(skips):
-        skip_a = skip[a]
-        skip_b = skip[b]
-        if skip_a == skip_b:
+def divisors(n: int) -> list[int]:
+    result: list[int] = []
+    for i in range(1, isqrt(n) + 1):
+        if n % i != 0:
             continue
-        assert skip_a is not None
-        assert skip_b is not None
-        a, b = skip_a, skip_b
-    if a == b:
-        return a
-    else:
-        assert parents[a] == parents[b]
-        result = parents[a]
-        return result if result is not None else 0
-```
-
-### Heights of nodes
-
-$\Theta(V+E)$
-
-```python
-def heights(tree: list[list[int]]) -> list[int]:
-    n = len(tree)
-    dfs = [0]
-    heights = [0] * n
-    while dfs:
-        current = dfs.pop()
-        for edge in tree[current]:
-            dfs.append(edge)
-            heights[edge] = heights[current] + 1
-    return heights
+        result.append(i)
+        if i * i == n:
+            continue
+        result.append(n // i)
+    return result
 ```

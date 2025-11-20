@@ -3,3 +3,9 @@ reference.pdf
 reference.html
 pnpm-lock.yaml
 test.py
+
+
+### Created by https://www.gitignore.io
+### direnv ###
+.direnv
+.envrc

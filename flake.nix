@@ -22,6 +22,8 @@
             pkgs.chromium
             pkgs.pandoc
             pkgs.nodejs
+            pkgs.docker-client
+            pkgs.docker-compose
           ];
         };
       }

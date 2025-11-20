@@ -1,3 +1,5 @@
 services:
   nix:
     build: .
+    volumes:
+      - ./out:/out

@@ -1,8 +1,6 @@
-FROM nixos/nix
+FROM alpine
 
 WORKDIR /app
-COPY ./flake.nix ./
-COPY ./package.json ./pnpm-lock.yaml ./
-RUN nix develop pnpm install
+RUN apk add --no-cache pandoc
 COPY reference.md ./
-RUN nix develop pnpm compile
+CMD ["sh","-c","pandoc reference.md -o /out/reference.html -s --section-divs --katex"]
